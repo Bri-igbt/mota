@@ -9,6 +9,7 @@ import Result from './pages/Result';
 import MyGenerations from './pages/MyGenerations';
 import Community from './pages/Community';
 import Plan from './pages/Plan';
+import Loading from './pages/Loading';
 
 function App() {
 	return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/my-generations" element={<MyGenerations />} />
         <Route path="/community" element={<Community />} />
         <Route path="/plans" element={<Plan/>} />
+        <Route path="/loading" element={<Loading />} />
       </Routes>
       <Footer />
     </>

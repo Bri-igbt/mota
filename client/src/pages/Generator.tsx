@@ -1,6 +1,165 @@
+import React, { useState } from "react"
+import Title from "../components/Title"
+import UploadImage from "../components/UploadImage"
+import { Loader2Icon, RectangleHorizontalIcon, RectangleVerticalIcon, Wand2Icon } from "lucide-react";
+import { PrimaryButton } from "../components/Buttons";
+
 const Generator = () => {
+
+    const [name, setName] = useState("");
+    const [userPrompt, setUserPrompt] = useState("");
+    const [productName, setProductName] = useState("");
+    const [productDescription, setProductDescription] = useState("");
+    const [aspectRatio, setAspectRatio] = useState('9:16');
+    const [productImage, setProductImage] = useState<File | null> (null);
+    const [modelImage, setModelImage] = useState<File | null> (null);
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'product' | 'model') => {
+        if(e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if(type === 'product') {
+                setProductImage(file);
+            } else {
+                setModelImage(file);
+            }
+        }
+    }
+
+    const handleGenerate = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsGenerating(true);
+
+        // Simulate generation process
+        setTimeout(() => {
+            setIsGenerating(false);
+            alert("Content generated successfully!");
+        }, 3000);
+    }
+
+
     return (
-        <div>Generator</div>
+        <div className="min-h-screen text-white p-6 md:p-12 mt-28">
+            <form className="max-w-4xl mx-auto mb-40" onSubmit={handleGenerate}>
+                <Title 
+                    heading="Create In-Context Image"
+                    description="Upload your model and product images to generate stunning MOT, short-form videos and social media posts"
+                />
+
+                <div className="flex gap-20 max-sm:flex-col items-start justify-between">
+                    {/* Left Column */}
+                    <div className="w-full">
+                        <div className="mb-4 text-gray-300">
+                            <label htmlFor="name" className="block text-sm mb-4">Project Name</label>
+                            <input 
+                                id="name" 
+                                type="text" 
+                                value={name} 
+                                onChange={(e) => setName(e.target.value)} 
+                                placeholder="Enter project name"
+                                required
+                                className="w-full rounded-lg bg-white/3 border-2 p-4 text-sm border-violet-200/10 focus:border-violet-500/50 outline-none transition-all"
+                            />
+                        </div>
+
+                        <div className="mb-4 text-gray-300">
+                            <label htmlFor="productName" className="block text-sm mb-4">Product Name</label>
+                            <input 
+                                id="productName" 
+                                type="text" 
+                                value={productName} 
+                                onChange={(e) => setProductName(e.target.value)} 
+                                placeholder="Enter product name"
+                                required
+                                className="w-full rounded-lg bg-white/3 border-2 p-4 text-sm border-violet-200/10 focus:border-violet-500/50 outline-none transition-all"
+                            />
+                        </div>
+
+                        <div className="mb-4 text-gray-300">
+                            <label htmlFor="productDescription" className="block text-sm mb-4">
+                                Project Description {" "} 
+                                <span className="text-xs text-violet-400">(optional)</span>
+                            </label>
+                            
+                            <textarea 
+                                id="productDescription" 
+                                rows={4}
+                                value={productDescription} 
+                                onChange={(e) => setProductDescription(e.target.value)} 
+                                placeholder="Enter the description of the product"
+                                className="w-full rounded-lg bg-white/3 border-2 p-4 text-sm border-violet-200/10 focus:border-violet-500/50 outline-none transition-all min-h-[120px]"
+                            />
+                        </div>
+
+                        <div className="mb-4 text-gray-300">
+                            <label className="block text-sm mb-4"> Aspect Ratio</label>
+
+                            <div className="flex gap-3">
+                                <RectangleVerticalIcon 
+                                    onClick={() => setAspectRatio('9:16')}
+                                    className={`p-2.5 size-13 bg-white/6 rounded transition-all ring-2 ring-transparent cursor-pointer ${aspectRatio === '9:16' ? 'ring-violet-500/50 bg-white/10' : ''}`}
+                                />
+
+                                <RectangleHorizontalIcon 
+                                    onClick={() => setAspectRatio('16:9')}
+                                    className={`p-2.5 size-13 bg-white/6 rounded transition-all ring-2 ring-transparent cursor-pointer ${aspectRatio === '16:9' ? 'ring-violet-500/50 bg-white/10' : ''}`}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mb-4 text-gray-300">
+                            <label htmlFor="userPrompt" className="block text-sm mb-4">
+                                    User Prompt{" "} 
+                                <span className="text-xs text-violet-400">(optional)</span>
+                            </label>
+                            
+                            <textarea 
+                                id="userPrompt" 
+                                rows={4}
+                                value={userPrompt} 
+                                onChange={(e) => setUserPrompt(e.target.value)} 
+                                placeholder="Describe how you want the narration to be like. For example, you can specify the tone, style, or any specific details you want to include in the narration."
+                                className="w-full rounded-lg bg-white/3 border-2 p-4 text-sm border-violet-200/10 focus:border-violet-500/50 outline-none transition-all min-h-[120px]"
+                            />
+                        </div>
+                    </div>
+
+                     {/* Right Column */}
+                    <div className='flex flex-col w-full sm:max-w-60 gap-8 mt-8 mb-12'>
+                        <UploadImage 
+                            label="Product Image"
+                            file={productImage}
+                            onClear={() => setProductImage(null)}
+                            onChange={(e) => handleFileChange(e, 'product')} 
+                        />
+
+                        <UploadImage 
+                            label="Model Image"
+                            file={modelImage}
+                            onClear={() => setModelImage(null)}
+                            onChange={(e) => handleFileChange(e, 'model')} 
+                        />
+                    </div>
+                </div>
+
+                <div className="flex justify-center mt-10">
+                    <PrimaryButton disabled={isGenerating} className="px-10 py-3 rounded-md disabled:opacity-70 disabled:cursor-not-allowed">
+                        {isGenerating ? 
+                            (
+                                <>
+                                    <Loader2Icon className="size-5 animate-spin"/>
+                                    Generating...
+                                </>
+                            ): (
+                                <>
+                                    <Wand2Icon  className="size-5"/>
+                                    Generate Image
+                                </>
+                            )}
+                    </PrimaryButton>
+                </div>
+            </form>
+        </div>
     )
 }
 
