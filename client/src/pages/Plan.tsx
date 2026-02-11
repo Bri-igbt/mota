@@ -1,8 +1,10 @@
-import React from 'react'
+import Pricing from "../components/Pricing"
 
 const Plan = () => {
     return (
-        <div>Plan</div>
+        <div className="max-sm:py-10 sm:pt-20">
+            <Pricing />
+        </div>
     )
 }
 
