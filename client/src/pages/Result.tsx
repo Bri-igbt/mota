@@ -102,6 +102,7 @@ const Result = () => {
                                         <>
                                             <SparkleIcon className="size-4.5" />
                                             Generate Video
+                                            
                                         </>
                                     )}
                                 </PrimaryButton>
