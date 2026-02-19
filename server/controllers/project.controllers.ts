@@ -5,6 +5,19 @@ import * as Sentry from "@sentry/node"
 import { Request, Response } from "express";
 import { prisma } from "../configs/prisma";
 import { v2 as cloudinary } from 'cloudinary';
+import { GenerateContentConfig, HarmBlockThreshold, HarmCategory } from '@google/genai';
+import fs from 'fs'
+import path from 'path';
+import ai from '../configs/ai';
+
+const loadImage = (path: string, mimeType: string) => {
+    return {
+        inlineData: {
+            data: fs.readFileSync(path).toString('base64'),
+            mimeType
+        }
+    }
+}
 // create project
 export const createProject = async (req:Request, res: Response) => {
     let tempProjectId: string;
@@ -62,6 +75,75 @@ export const createProject = async (req:Request, res: Response) => {
         })
 
         tempProjectId = project.id;
+
+        const model = 'gemini-3-pro-image-preview'
+
+        const generationConfig: GenerateContentConfig = {
+            maxOutputTokens: 32768,
+            temperature: 1,
+            topP: 0.95,
+            responseModalities: ['IMAGE'],
+            imageConfig: {
+                aspectRatio: aspectRatio || '9:16',
+                imageSize: '1k'
+            },
+            safetySettings: [
+                {
+                    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                    threshold: HarmBlockThreshold.OFF,
+                },
+                {
+                    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                    threshold: HarmBlockThreshold.OFF
+                },
+                {
+                    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                    threshold: HarmBlockThreshold.OFF,
+                },
+                {
+                    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                    threshold: HarmBlockThreshold.OFF,
+                },
+            ]
+        }
+
+        // Image to base64 structure of ai model
+        const img1base64 = loadImage(images[0].path, images[0].mimeType);
+        const img2base64 = loadImage(images[1].path, images[1].mimeType);
+
+        const prompt = {
+            text: `Combine the person and product into a realistic photo. Make the person naturally hold or use the product. 
+                Make lighting, shadows, scale and perspective. Make the person stand in professional studio lighting. Output
+                ecommerce-quality photo realistic imagery. ${userPrompt}
+            `
+        }
+
+        // Generate the image using ai model
+        const response: any = await ai.models.generateContent({
+            model,
+            contents: [img1base64, img2base64, prompt],
+            config: generationConfig,
+        })
+
+        // Check if the response in valid
+        if(!response?.candidates?.[0]?.content?.parts) {
+            throw new Error('Unexpected Response')
+        }
+
+        const parts = response.candidates[0].content.parts;
+
+        let finalBuffer: Buffer | null = null
+
+        for(const part of parts){
+            if(part.inlineData) {
+                finalBuffer = Buffer.from(part.inlineData.data, 'base64')
+            }
+        }  if(!finalBuffer) {
+            throw new Error('Failed to generate image')
+        }
+
+        const base64Image = `data:image/png;base64,${finalBuffer.toString('base64')}`
+
 
     } catch (error: any) {
         Sentry.captureException(error);
