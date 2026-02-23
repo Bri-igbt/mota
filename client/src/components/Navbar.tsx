@@ -3,7 +3,7 @@ import { GhostButton, PrimaryButton } from './Buttons';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { navLinks } from '../utils/index.ts';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { assets } from '../assets/assets.tsx';
 import { useClerk, UserButton, useUser } from '@clerk/clerk-react';
 
@@ -15,6 +15,17 @@ export default function Navbar() {
     const navigate = useNavigate();
     const { user } = useUser();
     const { openSignIn, openSignUp } = useClerk();
+
+    const [credits, setCredits] = useState(0);
+
+    const {pathname} = useLocation();
+    const getCredits = async () => {
+        try {
+            
+        } catch (error) {
+            
+        }
+    }
 
     return (
         <motion.nav className='fixed top-5 left-0 right-0 z-50 px-4'
