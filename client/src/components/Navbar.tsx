@@ -1,31 +1,43 @@
 import { DollarSignIcon, FolderEditIcon, GalleryHorizontalEnd, MenuIcon, SparkleIcon, XIcon } from 'lucide-react';
 import { GhostButton, PrimaryButton } from './Buttons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { navLinks } from '../utils/index.ts';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { assets } from '../assets/assets.tsx';
-import { useClerk, UserButton, useUser } from '@clerk/clerk-react';
+import { useAuth, useClerk, UserButton, useUser } from '@clerk/clerk-react';
+import api from '../configs/axios.ts';
+import toast from 'react-hot-toast';
 
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
-
+    const {getToken} = useAuth()
 
     const navigate = useNavigate();
     const { user } = useUser();
     const { openSignIn, openSignUp } = useClerk();
 
     const [credits, setCredits] = useState(0);
-
     const {pathname} = useLocation();
+
     const getCredits = async () => {
         try {
-            
-        } catch (error) {
+            const token = await getToken();
+            const { data } = await api.get('/api/user/credits', { headers: { 
+                Authorization: `Bearer ${token}`
+            }})
+            setCredits(data.credits)
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || error.message)
+            console.log(error);
             
         }
     }
+
+    useEffect(() => {
+        
+    }, [])
 
     return (
         <motion.nav className='fixed top-5 left-0 right-0 z-50 px-4'
