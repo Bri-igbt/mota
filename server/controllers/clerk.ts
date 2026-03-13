@@ -52,12 +52,14 @@ const ClerkWebhooks = async (req: Request, res: Response) => {
                 if ((data.charge_type === "recurring" || data.charge_type === "checkout") && data.status === 'paid') {
                     const credits = {pro: 80, premium: 240}
                     const clerkUserId = data?.payer?.user_id;
-                    const planId: keyof typeof credits = data?.subscription_items?.[0]?.plans?.slug;
+                    const planId: keyof typeof credits = data?.subscription_items?.[0]?.plan?.slug;
 
                     if(planId !== "pro" && planId !== "premium") {
                         return res.status(400).json({ message: "Invalid plan" });
                     }
 
+                    console.log(planId);
+                    
                     await prisma.user.update({
                         where: {
                             id: clerkUserId,
@@ -68,7 +70,40 @@ const ClerkWebhooks = async (req: Request, res: Response) => {
                             }
                         }
                     })
+
                 }
+
+                break;
+            }
+
+            case "subscription.updated": {  // ✅ handles pro plan changes
+                const clerkUserId = data?.payer?.user_id;
+                const activeItem = data?.items?.find((item: any) => item.status === "active");
+                const planId = activeItem?.plan?.slug;
+
+                console.log("📦 subscription.updated - clerkUserId:", clerkUserId, "planId:", planId);
+
+                const credits: Record<string, number> = { pro: 80, premium: 240 };
+
+                if (!planId || planId === "free_user" || !credits[planId]) {
+                    console.log("⏭️ Skipping free/unknown plan:", planId);
+                    break;
+                }
+
+                await prisma.user.upsert({
+                    where: { id: clerkUserId },
+                    update: { credits: { increment: credits[planId] } },
+                    create: {
+                        id: clerkUserId,
+                        email: data?.payer?.email,
+                        name: `${data?.payer?.first_name} ${data?.payer?.last_name}`,
+                        image: data?.payer?.image_url ?? "",
+                        credits: credits[planId]
+                    }
+                })
+
+                console.log(`✅ Credits incremented via subscription for ${clerkUserId} — plan: ${planId}`);
+                break;
             }
                 
         
@@ -76,7 +111,7 @@ const ClerkWebhooks = async (req: Request, res: Response) => {
                 break;
         }
 
-        res.json({ message: "Webhook received :" + type });
+        res.json({ message: "Webhook received : " + type });
     } catch (error: any) {
         Sentry.captureException(error);
         res.status(500).json({ message: error.code || error.message });

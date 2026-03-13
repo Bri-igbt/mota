@@ -21,13 +21,14 @@ export default function Navbar() {
     const [credits, setCredits] = useState(0);
     const {pathname} = useLocation();
 
-    const getCredits = async () => {
+    const getUserCredits = async () => {
         try {
             const token = await getToken();
             const { data } = await api.get('/api/user/credits', { headers: { 
                 Authorization: `Bearer ${token}`
             }})
             setCredits(data.credits)
+
         } catch (error: any) {
             toast.error(error?.response?.data?.message || error.message)
             console.log(error);
@@ -35,9 +36,11 @@ export default function Navbar() {
         }
     }
 
-    useEffect(() => {
-        
-    }, [])
+   useEffect(() => {
+    if(user) {
+        (async () => await getUserCredits())() 
+    }
+}, [user, pathname])
 
     return (
         <motion.nav className='fixed top-5 left-0 right-0 z-50 px-4'
@@ -72,7 +75,7 @@ export default function Navbar() {
                     ) : (
                     <div className='flex gap-2'>
                         <GhostButton onClick={()=> navigate('/plans')} className='border-none text-gray-300 sm:py-1.5'>
-                            Credits: 
+                            Credits: {credits} 
                         </GhostButton>
 
                         <UserButton>
