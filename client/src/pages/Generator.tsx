@@ -74,7 +74,6 @@ const Generator = () => {
                 />
 
                 <div className="flex gap-20 max-sm:flex-col items-start justify-between">
-                    {/* Left Column */}
                     <div className="w-full">
                         <div className="mb-4 text-gray-300">
                             <label htmlFor="name" className="block text-sm mb-4">Project Name</label>
@@ -151,7 +150,6 @@ const Generator = () => {
                         </div>
                     </div>
 
-                     {/* Right Column */}
                     <div className='flex flex-col w-full sm:max-w-60 gap-8 mt-8 mb-12'>
                         <UploadImage 
                             label="Product Image"

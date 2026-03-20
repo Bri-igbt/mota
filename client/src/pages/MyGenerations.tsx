@@ -40,7 +40,6 @@ const MyGenerations = () => {
                     <p className="text-gray-400">View and manage your AI-generated content.</p>
                 </header>
 
-                
                 <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
                     {generations.map((gen) => (
                     <ProjectCard key={gen.id} gen={gen} setGeneration={setGenerations} />
